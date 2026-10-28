@@ -1,0 +1,23 @@
+[package]
+name = "green-star-pdf-reader"
+version = "0.1.0"
+edition = "2024"
+license = "GPL-3.0-or-later"
+description = "Minimal tiled PDF renderer for Green star on macOS"
+
+[workspace]
+members = ["protocol"]
+
+[dependencies]
+anyhow = "1"
+serde_json = "1"
+viewer_protocol = { path = "protocol" }
+
+[profile.dev]
+debug = "line-tables-only"
+incremental = false
+
+[profile.release]
+strip = true
+incremental = false
+lto = "thin"
