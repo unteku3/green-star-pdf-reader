@@ -148,6 +148,22 @@ def main():
                 data = client.tile(page, width, height)
                 actual = tuple(pixel(data, width, x, y) for x, y in [(10, 10), (width - 10, 10), (10, height - 10), (width - 10, height - 10)])
                 assert actual == corners, (page, actual, corners)
+                # Verify absolute geometry at high DPI, not just agreement between
+                # two rendering paths that could share the same scaling mistake.
+                for factor in (2, 4, 6):
+                    raster_width, raster_height = width * factor, height * factor
+                    regions = [(0, 0), (raster_width - 64, 0),
+                               (0, raster_height - 64), (raster_width - 64, raster_height - 64)]
+                    for (x, y), expected_color in zip(regions, corners):
+                        region = client.tile(page, 64, 64, scale=1024 * factor, x=x, y=y)
+                        actual_color = pixel(region, 64, 32, 32)
+                        assert actual_color == expected_color, ("scaled crop corner", page, factor, x, y, actual_color, expected_color)
+                    # This tile crosses the upper quadrants' vertical boundary.
+                    # At 6x, these pixel positions are far outside unscaled content.
+                    region = client.tile(page, 64, 64, scale=1024 * factor,
+                                         x=raster_width // 2 - 32, y=raster_height // 4 - 32)
+                    assert pixel(region, 64, 16, 32) == corners[0], ("left scaled quadrant", page, factor)
+                    assert pixel(region, 64, 48, 32) == corners[1], ("right scaled quadrant", page, factor)
                 # Directly clipped tiles must exactly match the same area of a full render.
                 full = client.tile(page, width * 2, height * 2, scale=2048)
                 for x, y, tile_width, tile_height in [(17, 35, 130, 211), (width * 2 - 41, height * 2 - 53, 41, 53)]:
@@ -178,7 +194,7 @@ def main():
             client.abort()
         truncated = subprocess.run([str(binary)], input=struct.pack("<I", 10) + b"abc", capture_output=True, timeout=5)
         assert truncated.returncode != 0
-    print("IPC passed: crop/rotation/BGRA, direct tiles, Retina scales, Unicode paths, invalid inputs, encryption, shared views, reopen and shutdown")
+    print("IPC passed: crop/rotation/BGRA, explicit 2x/4x/6x geometry, direct tiles, Retina scales, Unicode paths, invalid inputs, encryption, shared views, reopen and shutdown")
 
 
 if __name__ == "__main__":

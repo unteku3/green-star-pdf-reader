@@ -80,6 +80,7 @@ unsafe extern "C" {
     fn CGContextSetRGBFillColor(context: *mut c_void, red: f64, green: f64, blue: f64, alpha: f64);
     fn CGContextFillRect(context: *mut c_void, rect: Rect);
     fn CGContextTranslateCTM(context: *mut c_void, x: f64, y: f64);
+    fn CGContextScaleCTM(context: *mut c_void, x: f64, y: f64);
     fn CGContextConcatCTM(context: *mut c_void, transform: Affine);
     fn CGContextSetInterpolationQuality(context: *mut c_void, quality: c_int);
     fn CGContextSetShouldAntialias(context: *mut c_void, enabled: bool);
@@ -180,7 +181,8 @@ impl Document {
             .pages
             .get(request.page as usize)
             .context("PDF page is out of range")?;
-        let (raster_width, raster_height, length) = validate_tile(*dimensions, request)?;
+        let (_, _, length) = validate_tile(*dimensions, request)?;
+        let scale = request.scale as f64 / RASTER_SCALE_DENOMINATOR as f64;
         let page = NonNull::new(unsafe {
             CGPDFDocumentGetPage(self.native.0.as_ptr(), request.page as usize + 1)
         })
@@ -208,8 +210,8 @@ impl Document {
         let rectangle = Rect {
             origin: Point { x: 0.0, y: 0.0 },
             size: Size {
-                width: raster_width as f64,
-                height: raster_height as f64,
+                width: dimensions.width,
+                height: dimensions.height,
             },
         };
         unsafe {
@@ -228,8 +230,11 @@ impl Document {
             CGContextTranslateCTM(
                 context_pointer,
                 -(request.x as f64),
-                request.y as f64 + request.height as f64 - raster_height as f64,
+                request.y as f64 + request.height as f64 - dimensions.height * scale,
             );
+            // CGPDFPageGetDrawingTransform only scales down. Normalize crop and
+            // rotation in PDF points, then apply the requested raster scale explicitly.
+            CGContextScaleCTM(context_pointer, scale, scale);
             CGContextConcatCTM(
                 context_pointer,
                 CGPDFPageGetDrawingTransform(page.as_ptr(), CROP_BOX, rectangle, 0, true),
