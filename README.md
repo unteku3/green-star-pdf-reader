@@ -13,7 +13,7 @@ Requires a Green star build that supports `paged_document_v1`.
 3. Review the release and choose **Install and enable**.
 4. Open a local PDF file.
 
-Use the mouse wheel or trackpad to scroll, **Cmd+Plus / Cmd+Minus** to zoom, and **Cmd+0** for Fit width. Disable, enable or uninstall it in **Extensions**. If the older PDF Viewer is installed, disable it before using PDF Reader.
+Use the mouse wheel or trackpad to scroll, pinch with two fingers or use **Cmd+Plus / Cmd+Minus** to zoom, and **Cmd+0** for Fit width. Trackpad pinch requires the updated Green star host; rebuild and restart the editor to enable it. Disable, enable or uninstall it in **Extensions**. If the older PDF Viewer is installed, disable it before using PDF Reader.
 
 This is a native extension for Green star, not an extension for the official Zed marketplace. Its executable runs with your user permissions. Downloads use HTTPS and SHA-256 verification. Release binaries are ad-hoc signed, not Apple-notarized.
 
