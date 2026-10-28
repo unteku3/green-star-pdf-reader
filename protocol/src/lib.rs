@@ -6,6 +6,9 @@ pub const API_VERSION: u32 = 1;
 pub const MAX_FRAME: usize = 64 * 1024 * 1024;
 pub const CACHE_BUDGET: usize = 128 * 1024 * 1024;
 pub const PAGED_DOCUMENT_CAPABILITY: &str = "paged_document_v1";
+pub const PAGED_TEXT_CAPABILITY: &str = "paged_text_v1";
+pub const MAX_PAGE_TEXT_BYTES: usize = 1024 * 1024;
+pub const MAX_PAGE_TEXT_GLYPHS: usize = 100_000;
 pub const TILE_SIZE: u32 = 1024;
 pub const RASTER_SCALE_DENOMINATOR: u32 = 1024;
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -36,6 +39,9 @@ pub enum Command {
     },
     RenderPageTile {
         tile: TileRequest,
+    },
+    ExtractPageText {
+        page: u32,
     },
     RenderFormula {
         latex: String,
@@ -91,6 +97,8 @@ pub struct Response {
     pub document: Option<DocumentMetadata>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tile: Option<PageTile>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub page_text: Option<PageText>,
     /// Number of raw binary frames following the JSON response.
     pub blobs: usize,
 }
@@ -120,6 +128,21 @@ pub struct PageTile {
     pub request: TileRequest,
     /// Index of a tightly packed, premultiplied BGRA8 binary frame.
     pub blob: usize,
+}
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct PageText {
+    pub page: u32,
+    pub text: String,
+    pub glyphs: Vec<TextGlyph>,
+}
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct TextGlyph {
+    /// UTF-8 byte range in PageText.text, covering one Unicode scalar.
+    pub start: u32,
+    pub end: u32,
+    /// x, y, width, height in rotated crop-box points, with a top-left origin.
+    /// Whitespace without a visible rectangle may have zero width or height.
+    pub bounds: [f32; 4],
 }
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct Scene {

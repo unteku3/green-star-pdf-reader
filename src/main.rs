@@ -55,6 +55,14 @@ impl Reader {
                 });
                 Ok(vec![pixels])
             }
+            Command::ExtractPageText { page } => {
+                let document = self
+                    .views
+                    .get(&request.view)
+                    .context("Document view is closed")?;
+                response.page_text = Some(document.extract(page)?);
+                Ok(Vec::new())
+            }
             Command::Close => {
                 self.views.remove(&request.view);
                 self.documents

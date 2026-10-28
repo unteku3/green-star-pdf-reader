@@ -1,12 +1,12 @@
 {
   "id": "green-star-pdf-reader",
   "name": "PDF Reader",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "api_version": 1,
   "platform": "aarch64-apple-darwin",
   "executable": "green-star-pdf-reader",
   "extensions": ["pdf"],
-  "capabilities": ["paged_document_v1"],
+  "capabilities": ["paged_document_v1", "paged_text_v1"],
   "settings_key": "pdf_reader",
   "settings": {}
 }

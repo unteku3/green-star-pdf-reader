@@ -1,9 +1,9 @@
 [package]
 name = "green-star-pdf-reader"
-version = "0.1.1"
+version = "0.2.0"
 edition = "2024"
 license = "GPL-3.0-or-later"
-description = "Minimal tiled PDF renderer for Green star on macOS"
+description = "Tiled PDF reader with text selection for Green star on macOS"
 
 [workspace]
 members = ["protocol"]
